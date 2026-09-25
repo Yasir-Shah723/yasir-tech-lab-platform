@@ -1,8 +1,13 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import authRoutes from './routes/authRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
+
+// Secure HTTP headers
+app.use(helmet());
 
 // Enable Cross-Origin Resource Sharing with frontend origin
 app.use(
@@ -15,7 +20,7 @@ app.use(
 // Built-in JSON body parser
 app.use(express.json());
 
-// Health check endpoint
+// API Health Check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -24,10 +29,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Catch unhandled routes and forward to error handler
-app.all('/*splat', notFoundHandler);
+// Mount Routes
+app.use('/api/v1/auth', authRoutes);
 
-// Global centralized error middleware
+// Catch unhandled routes (Express v5 clean catch-all middleware, no wildcard patterns needed)
+app.use(notFoundHandler);
+
+// Centralized Error Handling Middleware
 app.use(errorHandler);
 
 export default app;
