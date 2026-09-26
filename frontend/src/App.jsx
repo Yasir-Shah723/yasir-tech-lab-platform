@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminProjects from './pages/admin/AdminProjects';
 
 // Public landing placeholder while we construct backend models
 const PublicHome = () => {
@@ -94,7 +95,7 @@ function App() {
           }
         >
           <Route path="dashboard" element={<AdminDashboard />} />
-          {/* Future admin sections will be nested here */}
+         <Route path="projects" element={<AdminProjects />} />
         </Route>
 
         {/* Fallback */}

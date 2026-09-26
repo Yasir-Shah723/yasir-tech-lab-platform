@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './routes/authRoutes.js';
+import projectRoutes from './routes/projectRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
@@ -31,8 +32,9 @@ app.get('/api/health', (req, res) => {
 
 // Mount Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/projects', projectRoutes);
 
-// Catch unhandled routes (Express v5 clean catch-all middleware, no wildcard patterns needed)
+// Catch unhandled routes
 app.use(notFoundHandler);
 
 // Centralized Error Handling Middleware
