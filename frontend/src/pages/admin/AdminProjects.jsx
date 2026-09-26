@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import ImageUpload from '../../components/common/ImageUpload';
 import {
   FolderGit2,
   Plus,
@@ -16,7 +17,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 
-const GithubIcon = ({ className = "w-4 h-4" }) => (
+const GithubIcon = ({ className = 'w-4 h-4' }) => (
   <svg
     className={className}
     fill="currentColor"
@@ -50,6 +51,7 @@ const AdminProjects = () => {
     category: 'Full Stack',
     projectType: 'Personal Project',
     technologies: '',
+    thumbnailUrl: '',
     featured: false,
     published: true,
   });
@@ -150,6 +152,10 @@ const AdminProjects = () => {
       const payload = {
         ...formData,
         technologies: techArray,
+        thumbnail: {
+          url: formData.thumbnailUrl,
+          alt: `${formData.title} preview thumbnail`,
+        },
       };
 
       const res = await api.post('/projects/admin', payload);
@@ -163,6 +169,7 @@ const AdminProjects = () => {
           category: 'Full Stack',
           projectType: 'Personal Project',
           technologies: '',
+          thumbnailUrl: '',
           featured: false,
           published: true,
         });
@@ -239,7 +246,7 @@ const AdminProjects = () => {
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-2 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-                (selectedCategory === cat || (!selectedCategory && cat === 'All'))
+                selectedCategory === cat || (!selectedCategory && cat === 'All')
                   ? 'bg-primary text-white'
                   : 'border border-light-border dark:border-dark-border bg-white dark:bg-dark-card text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text'
               }`}
@@ -394,18 +401,25 @@ const AdminProjects = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-light-muted dark:text-dark-muted mb-1.5">
-  Short Description * (Max 500 chars)
-</label>
-<textarea
-  rows="3"
-  required
-  maxLength={500}
-  value={formData.shortDescription}
-  onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-  placeholder="Brief summary of what this application does..."
-  className="w-full px-3.5 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-/>
+                  Short Description * (Max 500 chars)
+                </label>
+                <textarea
+                  rows="3"
+                  required
+                  maxLength={500}
+                  value={formData.shortDescription}
+                  onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
+                  placeholder="Brief summary of what this application does..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
               </div>
+
+              {/* Image Upload Component */}
+              <ImageUpload
+                value={formData.thumbnailUrl}
+                onChange={(url) => setFormData({ ...formData, thumbnailUrl: url })}
+                label="Project Thumbnail Image"
+              />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

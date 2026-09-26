@@ -1,14 +1,20 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
 import authRoutes from './routes/authRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
+import mediaRoutes from './routes/mediaRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
 
-// Secure HTTP headers
-app.use(helmet());
+// Secure HTTP headers (allow cross-origin resource loading for static images)
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 // Enable Cross-Origin Resource Sharing with frontend origin
 app.use(
@@ -21,6 +27,9 @@ app.use(
 // Built-in JSON body parser
 app.use(express.json());
 
+// Serve local uploads folder statically for development fallback
+app.use('/uploads', express.static(path.resolve('uploads')));
+
 // API Health Check
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -30,9 +39,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount Routes
+// Mount API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/projects', projectRoutes);
+app.use('/api/v1/media', mediaRoutes);
 
 // Catch unhandled routes
 app.use(notFoundHandler);
