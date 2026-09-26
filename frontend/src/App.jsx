@@ -7,6 +7,8 @@ import AdminLayout from './layouts/AdminLayout';
 
 // Public Pages
 import Home from './pages/Home';
+import Projects from './pages/Projects';
+import ProjectCaseStudy from './pages/ProjectCaseStudy';
 
 // Admin Pages & Guards
 import ProtectedRoute from './components/ProtectedRoute';
@@ -21,7 +23,8 @@ function App() {
         {/* Public Website Routes */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
-          {/* Phase 10 Case Study pages and subsequent public routes will be nested here */}
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:slug" element={<ProjectCaseStudy />} />
         </Route>
 
         {/* Admin Authentication */}
