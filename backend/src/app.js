@@ -2,10 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Route imports
 import authRoutes from './routes/authRoutes.js';
 import projectRoutes from './routes/projectRoutes.js';
-import mediaRoutes from './routes/mediaRoutes.js';
-import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
@@ -14,43 +15,30 @@ import testimonialRoutes from './routes/testimonialRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import quoteRoutes from './routes/quoteRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
+import mediaRoutes from './routes/mediaRoutes.js';
+
+// Error Handler Middleware
+import { errorHandler } from './middleware/errorMiddleware.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Secure HTTP headers (allow cross-origin resource loading for static images)
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-  })
-);
+// Security and utility middlewares
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Enable Cross-Origin Resource Sharing with frontend origin
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true,
-  })
-);
+// Static uploads folder (for uploaded certificate PDFs / images)
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Built-in JSON body parser
-app.use(express.json());
-
-// Serve local uploads folder statically for development fallback
-app.use('/uploads', express.static(path.resolve('uploads')));
-
-// API Health Check
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Yasir Tech Lab API is running smoothly',
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Mount API Routes
+// ---------------------------------------------------------------------
+// 1. API Route Registrations
+// ---------------------------------------------------------------------
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/projects', projectRoutes);
-app.use('/api/v1/media', mediaRoutes);
 app.use('/api/v1/services', serviceRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/certificates', certificateRoutes);
@@ -59,11 +47,32 @@ app.use('/api/v1/testimonials', testimonialRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/quotes', quoteRoutes);
 app.use('/api/v1/settings', settingsRoutes);
+app.use('/api/v1/media', mediaRoutes);
 
-// Catch unhandled routes
-app.use(notFoundHandler);
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime() });
+});
 
-// Centralized Error Handling Middleware
+// ---------------------------------------------------------------------
+// 2. Production Static Frontend Serving (RIGHT HERE)
+// ---------------------------------------------------------------------
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(distPath));
+
+  // Any non-API route gets served the React frontend
+  app.get('*', (req, res, next) => {
+    if (req.originalUrl.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.resolve(distPath, 'index.html'));
+  });
+}
+
+// ---------------------------------------------------------------------
+// 3. Global Error Handling Middleware (Always at the very bottom)
+// ---------------------------------------------------------------------
 app.use(errorHandler);
 
 export default app;
