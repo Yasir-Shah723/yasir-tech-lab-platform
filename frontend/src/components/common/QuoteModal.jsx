@@ -28,7 +28,7 @@ const QuoteModal = ({ isOpen, onClose, initialProjectType = 'Full Stack Web App'
     phone: '',
     company: '',
     projectType: initialProjectType,
-    budgetRange: '$300 - $600',
+    budgetRange: '$185 - $400',
     timeline: 'Standard (2 - 4 weeks)',
     features: [],
     description: '',
@@ -205,17 +205,17 @@ const QuoteModal = ({ isOpen, onClose, initialProjectType = 'Full Stack Web App'
                 <label className="block text-xs font-semibold text-light-muted dark:text-dark-muted mb-1.5">
                   Budget Band *
                 </label>
-                <select
-                  value={formData.budgetRange}
-                  onChange={(e) => setFormData({ ...formData, budgetRange: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-dark-bg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="$120 - $300">$120 - $300 (Standard Website / Small Scope)</option>
-                  <option value="$300 - $600">$300 - $600 (Full-Stack MERN Application)</option>
-                  <option value="$600 - $1,200">$600 - $1,200 (Complex Multi-Role Platform)</option>
-                  <option value="$1,200+">$1,200+ (Enterprise / Scalable Architecture)</option>
-                  <option value="Flexible">Flexible / Open to Recommendation</option>
-                </select>
+               <select
+  value={formData.budgetRange}
+  onChange={(e) => setFormData({ ...formData, budgetRange: e.target.value })}
+  className="w-full px-3.5 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-dark-bg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+>
+  <option value="$50 - $185">$50 - $185 (Standard Website / Small Scope / Fixes)</option>
+  <option value="$185 - $450">$185 - $450 (Full-Stack MERN Application / Core Portal)</option>
+  <option value="$450 - $850">$450 - $850 (Complex Multi-Role Platform / Booking Engine)</option>
+  <option value="$850+">$850+ (Custom Scalable Web Platform)</option>
+  <option value="Flexible">Flexible / Open to Recommendation</option>
+</select>
               </div>
 
               <div>
