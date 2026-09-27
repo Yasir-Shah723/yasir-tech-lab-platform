@@ -10,8 +10,10 @@
     "seed:admin": "node scripts/seedAdmin.js",
     "seed:projects": "node scripts/seedProjects.js",
     "seed:services": "node scripts/seedServices.js",
-    "seed:profile": "node scripts/seedProfileData.js"
+    "seed:profile": "node scripts/seedProfileData.js",
+    "seed:certificates": "node scripts/seedCertificates.js"
     
+
   },
   "keywords": [],
   "author": "",

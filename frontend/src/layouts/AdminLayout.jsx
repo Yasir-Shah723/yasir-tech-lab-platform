@@ -7,6 +7,7 @@ import {
   FolderGit2,
   Briefcase,
   GraduationCap,
+  Award,
   Mail,
   FileQuestion,
   Settings,
@@ -29,11 +30,12 @@ const AdminLayout = () => {
     navigate('/admin/login', { replace: true });
   };
 
- const navItems = [
+  const navItems = [
     { label: 'Overview', path: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Projects', path: '/admin/projects', icon: FolderGit2 },
     { label: 'Services', path: '/admin/services', icon: Briefcase },
     { label: 'Experience', path: '/admin/experience', icon: GraduationCap },
+    { label: 'Certificates', path: '/admin/certificates', icon: Award },
     { label: 'Messages', path: '/admin/messages', icon: Mail },
     { label: 'Quote Requests', path: '/admin/quotes', icon: FileQuestion },
     { label: 'Settings & Bio', path: '/admin/settings', icon: Settings },
@@ -69,7 +71,7 @@ const AdminLayout = () => {
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1.5 rounded-lg border border-light-border dark:border-dark-border"
+              className="lg:hidden p-1.5 rounded-lg border border-light-border dark:border-dark-border cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -129,7 +131,7 @@ const AdminLayout = () => {
         <header className="h-16 px-6 border-b border-light-border dark:border-dark-border bg-white/50 dark:bg-dark-surface/50 backdrop-blur-md flex items-center justify-between sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-xl border border-light-border dark:border-dark-border text-light-muted dark:text-dark-muted"
+            className="lg:hidden p-2 rounded-xl border border-light-border dark:border-dark-border text-light-muted dark:text-dark-muted cursor-pointer"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -144,7 +146,7 @@ const AdminLayout = () => {
             <button
               onClick={toggleTheme}
               aria-label="Toggle theme"
-              className="p-2 rounded-xl border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-card hover:border-primary transition-all text-xs flex items-center gap-2"
+              className="p-2 rounded-xl border border-light-border dark:border-dark-border bg-light-bg dark:bg-dark-card hover:border-primary transition-all text-xs flex items-center gap-2 cursor-pointer"
             >
               {isDark ? (
                 <>

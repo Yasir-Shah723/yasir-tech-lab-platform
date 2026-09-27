@@ -12,6 +12,7 @@ const PublicNavbar = () => {
     { label: 'Projects', path: '/projects' },
     { label: 'Services', path: '/services' },
     { label: 'Experience', path: '/experience' },
+    { label: 'Certificates', path: '/certificates' },
     { label: 'Contact', path: '/contact' },
   ];
 

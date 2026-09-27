@@ -8,6 +8,7 @@ import mediaRoutes from './routes/mediaRoutes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
+import certificateRoutes from './routes/certificateRoutes.js';
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/v1/projects', projectRoutes);
 app.use('/api/v1/media', mediaRoutes);
 app.use('/api/v1/services', serviceRoutes);
 app.use('/api/v1/profile', profileRoutes);
+app.use('/api/v1/certificates', certificateRoutes);
 
 // Catch unhandled routes
 app.use(notFoundHandler);
