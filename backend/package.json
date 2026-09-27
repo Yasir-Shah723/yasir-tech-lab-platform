@@ -9,7 +9,9 @@
     "dev": "nodemon server.js",
     "seed:admin": "node scripts/seedAdmin.js",
     "seed:projects": "node scripts/seedProjects.js",
-    "seed:services": "node scripts/seedServices.js"
+    "seed:services": "node scripts/seedServices.js",
+    "seed:profile": "node scripts/seedProfileData.js"
+    
   },
   "keywords": [],
   "author": "",

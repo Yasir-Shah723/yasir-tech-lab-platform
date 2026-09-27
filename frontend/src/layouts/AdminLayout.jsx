@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   FolderGit2,
   Briefcase,
+  GraduationCap,
   Mail,
   FileQuestion,
   Settings,
@@ -28,10 +29,11 @@ const AdminLayout = () => {
     navigate('/admin/login', { replace: true });
   };
 
-  const navItems = [
+ const navItems = [
     { label: 'Overview', path: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Projects', path: '/admin/projects', icon: FolderGit2 },
     { label: 'Services', path: '/admin/services', icon: Briefcase },
+    { label: 'Experience', path: '/admin/experience', icon: GraduationCap },
     { label: 'Messages', path: '/admin/messages', icon: Mail },
     { label: 'Quote Requests', path: '/admin/quotes', icon: FileQuestion },
     { label: 'Settings & Bio', path: '/admin/settings', icon: Settings },

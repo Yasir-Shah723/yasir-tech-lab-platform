@@ -10,6 +10,7 @@ import Home from './pages/Home';
 import Projects from './pages/Projects';
 import ProjectCaseStudy from './pages/ProjectCaseStudy';
 import Services from './pages/Services';
+import ExperiencePage from './pages/ExperiencePage';
 
 // Admin Pages & Guards
 import ProtectedRoute from './components/ProtectedRoute';
@@ -17,6 +18,7 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProjects from './pages/admin/AdminProjects';
 import AdminServices from './pages/admin/AdminServices';
+import AdminExperience from './pages/admin/AdminExperience';
 
 function App() {
   return (
@@ -28,6 +30,7 @@ function App() {
           <Route path="/projects" element={<Projects />} />
           <Route path="/projects/:slug" element={<ProjectCaseStudy />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/experience" element={<ExperiencePage />} />
         </Route>
 
         {/* Admin Authentication */}
@@ -45,6 +48,7 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="projects" element={<AdminProjects />} />
           <Route path="services" element={<AdminServices />} />
+          <Route path="experience" element={<AdminExperience />} />
         </Route>
 
         {/* Fallback to Home */}
