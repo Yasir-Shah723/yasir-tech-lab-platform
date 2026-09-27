@@ -14,6 +14,7 @@ import ExperiencePage from './pages/ExperiencePage';
 import CertificatesPage from './pages/CertificatesPage';
 import BlogPage from './pages/BlogPage';
 import BlogDetail from './pages/BlogDetail';
+import ContactPage from './pages/ContactPage';
 
 // Admin Pages & Guards
 import ProtectedRoute from './components/ProtectedRoute';
@@ -25,6 +26,7 @@ import AdminExperience from './pages/admin/AdminExperience';
 import AdminCertificates from './pages/admin/AdminCertificates';
 import AdminBlogs from './pages/admin/AdminBlogs';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
+import AdminMessages from './pages/admin/AdminMessages';
 
 function App() {
   return (
@@ -40,6 +42,7 @@ function App() {
           <Route path="/certificates" element={<CertificatesPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogDetail />} />
+          <Route path="/contact" element={<ContactPage />} />
         </Route>
 
         {/* Admin Authentication */}
@@ -61,6 +64,7 @@ function App() {
           <Route path="certificates" element={<AdminCertificates />} />
           <Route path="blogs" element={<AdminBlogs />} />
           <Route path="testimonials" element={<AdminTestimonials />} />
+          <Route path="messages" element={<AdminMessages />} />
         </Route>
 
         {/* Fallback to Home */}

@@ -13,8 +13,6 @@
     "seed:profile": "node scripts/seedProfileData.js",
     "seed:certificates": "node scripts/seedCertificates.js",
     "seed:blogs": "node scripts/seedBlogs.js"
-
-
   },
   "keywords": [],
   "author": "",
