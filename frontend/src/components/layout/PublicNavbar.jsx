@@ -13,6 +13,7 @@ const PublicNavbar = () => {
     { label: 'Services', path: '/services' },
     { label: 'Experience', path: '/experience' },
     { label: 'Certificates', path: '/certificates' },
+    { label: 'Articles', path: '/blog' },
     { label: 'Contact', path: '/contact' },
   ];
 
