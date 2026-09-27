@@ -24,6 +24,7 @@ import AdminServices from './pages/admin/AdminServices';
 import AdminExperience from './pages/admin/AdminExperience';
 import AdminCertificates from './pages/admin/AdminCertificates';
 import AdminBlogs from './pages/admin/AdminBlogs';
+import AdminTestimonials from './pages/admin/AdminTestimonials';
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
           <Route path="experience" element={<AdminExperience />} />
           <Route path="certificates" element={<AdminCertificates />} />
           <Route path="blogs" element={<AdminBlogs />} />
+          <Route path="testimonials" element={<AdminTestimonials />} />
         </Route>
 
         {/* Fallback to Home */}

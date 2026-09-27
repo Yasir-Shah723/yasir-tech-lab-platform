@@ -10,6 +10,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import certificateRoutes from './routes/certificateRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
+import testimonialRoutes from './routes/testimonialRoutes.js';
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use('/api/v1/services', serviceRoutes);
 app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/certificates', certificateRoutes);
 app.use('/api/v1/blogs', blogRoutes);
+app.use('/api/v1/testimonials', testimonialRoutes);
 
 // Catch unhandled routes
 app.use(notFoundHandler);

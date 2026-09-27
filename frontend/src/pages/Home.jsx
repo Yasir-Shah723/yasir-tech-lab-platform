@@ -1,8 +1,9 @@
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
 import ProjectsPreview from '../components/sections/ProjectsPreview';
+import TestimonialsSection from '../components/sections/TestimonialsSection';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const Home = () => {
   return (
@@ -10,8 +11,11 @@ const Home = () => {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Featured Projects Preview (Connected to MongoDB) */}
+      {/* Featured Projects Preview */}
       <ProjectsPreview />
+
+      {/* Testimonials / Quality Standards */}
+      <TestimonialsSection />
 
       {/* Services Teaser */}
       <section className="py-16 border-t border-light-border dark:border-dark-border">
