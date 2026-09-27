@@ -8,7 +8,8 @@
     "start": "nodemon server.js",
     "dev": "nodemon server.js",
     "seed:admin": "node scripts/seedAdmin.js",
-    "seed:projects": "node scripts/seedProjects.js"
+    "seed:projects": "node scripts/seedProjects.js",
+    "seed:services": "node scripts/seedServices.js"
   },
   "keywords": [],
   "author": "",
