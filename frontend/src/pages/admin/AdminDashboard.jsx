@@ -7,12 +7,10 @@ import {
   Award,
   BookOpen,
   Mail,
+  FileQuestion,
   ArrowRight,
   Loader2,
-  CheckCircle,
   ExternalLink,
-  MessageSquareQuote,
-  Clock,
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -24,6 +22,8 @@ const AdminDashboard = () => {
     unreadMessages: 0,
     totalMessages: 0,
     totalTestimonials: 0,
+    pendingQuotes: 0,
+    totalQuotes: 0,
     recentMessages: [],
   });
   const [loading, setLoading] = useState(true);
@@ -48,17 +48,27 @@ const AdminDashboard = () => {
   const statCards = [
     {
       label: 'Unread Messages',
-      value: stats.unreadMessages,
-      subtitle: `${stats.totalMessages} total received`,
+      value: stats.unreadMessages || 0,
+      subtitle: `${stats.totalMessages || 0} total received`,
       icon: Mail,
       link: '/admin/messages',
-      highlight: stats.unreadMessages > 0,
+      highlight: (stats.unreadMessages || 0) > 0,
       color: 'text-primary',
       bgColor: 'bg-primary/10',
     },
     {
+      label: 'Quote Requests',
+      value: stats.pendingQuotes || 0,
+      subtitle: `${stats.totalQuotes || 0} total briefs`,
+      icon: FileQuestion,
+      link: '/admin/quotes',
+      highlight: (stats.pendingQuotes || 0) > 0,
+      color: 'text-amber-500',
+      bgColor: 'bg-amber-500/10',
+    },
+    {
       label: 'Projects',
-      value: stats.totalProjects,
+      value: stats.totalProjects || 0,
       subtitle: 'Engineered case studies',
       icon: FolderGit2,
       link: '/admin/projects',
@@ -67,7 +77,7 @@ const AdminDashboard = () => {
     },
     {
       label: 'Services',
-      value: stats.totalServices,
+      value: stats.totalServices || 0,
       subtitle: 'Development offerings',
       icon: Briefcase,
       link: '/admin/services',
@@ -76,7 +86,7 @@ const AdminDashboard = () => {
     },
     {
       label: 'Certificates',
-      value: stats.totalCertificates,
+      value: stats.totalCertificates || 0,
       subtitle: 'Verified credentials',
       icon: Award,
       link: '/admin/certificates',
@@ -85,7 +95,7 @@ const AdminDashboard = () => {
     },
     {
       label: 'Articles',
-      value: stats.totalBlogs,
+      value: stats.totalBlogs || 0,
       subtitle: 'Published insights',
       icon: BookOpen,
       link: '/admin/blogs',
@@ -128,7 +138,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
@@ -142,17 +152,17 @@ const AdminDashboard = () => {
               }`}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold text-light-muted dark:text-dark-muted">
+                <span className="text-xs font-semibold text-light-muted dark:text-dark-muted truncate">
                   {card.label}
                 </span>
-                <div className={`w-8 h-8 rounded-xl ${card.bgColor} ${card.color} flex items-center justify-center`}>
+                <div className={`w-8 h-8 rounded-xl ${card.bgColor} ${card.color} flex items-center justify-center shrink-0`}>
                   <Icon className="w-4 h-4" />
                 </div>
               </div>
 
               <div>
                 <p className="text-3xl font-extrabold tracking-tight">{card.value}</p>
-                <p className="text-[11px] text-light-muted dark:text-dark-muted mt-1">
+                <p className="text-[11px] text-light-muted dark:text-dark-muted mt-1 truncate">
                   {card.subtitle}
                 </p>
               </div>

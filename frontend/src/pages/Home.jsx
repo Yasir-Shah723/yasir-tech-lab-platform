@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import HeroSection from '../components/sections/HeroSection';
 import ProjectsPreview from '../components/sections/ProjectsPreview';
 import TestimonialsSection from '../components/sections/TestimonialsSection';
+import QuoteModal from '../components/common/QuoteModal';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 const Home = () => {
+  const [quoteOpen, setQuoteOpen] = useState(false);
+
   return (
     <div>
       {/* Hero Section */}
@@ -28,13 +31,13 @@ const Home = () => {
               From responsive business websites to full-stack MERN portals and database systems, I build software designed around your specific requirements.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
-              <Link
-                to="/contact"
+              <button
+                onClick={() => setQuoteOpen(true)}
                 className="px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md shadow-primary/20 transition-all inline-flex items-center gap-2 cursor-pointer"
               >
-                <span>Request a Quote</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Request a Project Estimate</span>
+              </button>
               <Link
                 to="/services"
                 className="px-6 py-3 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/50 hover:border-primary text-xs font-semibold transition-all cursor-pointer"
@@ -45,6 +48,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Interactive Project Quote Modal */}
+      <QuoteModal isOpen={quoteOpen} onClose={() => setQuoteOpen(false)} />
     </div>
   );
 };

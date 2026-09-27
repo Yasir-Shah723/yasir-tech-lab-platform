@@ -27,6 +27,7 @@ import AdminCertificates from './pages/admin/AdminCertificates';
 import AdminBlogs from './pages/admin/AdminBlogs';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminMessages from './pages/admin/AdminMessages';
+import AdminQuotes from './pages/admin/AdminQuotes';
 
 function App() {
   return (
@@ -65,6 +66,8 @@ function App() {
           <Route path="blogs" element={<AdminBlogs />} />
           <Route path="testimonials" element={<AdminTestimonials />} />
           <Route path="messages" element={<AdminMessages />} />
+          <Route path="quotes" element={<AdminQuotes />} />
+          
         </Route>
 
         {/* Fallback to Home */}

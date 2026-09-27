@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
+import QuoteModal from '../components/common/QuoteModal';
 import {
   Briefcase,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Server,
   Bug,
   Code2,
+  Sparkles,
 } from 'lucide-react';
 
 const iconMap = {
@@ -28,6 +30,8 @@ const iconMap = {
 const Services = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [quoteModalOpen, setQuoteModalOpen] = useState(false);
+  const [selectedServiceTitle, setSelectedServiceTitle] = useState('Full Stack Web App');
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -45,6 +49,11 @@ const Services = () => {
 
     fetchServices();
   }, []);
+
+  const handleOpenEstimate = (title) => {
+    setSelectedServiceTitle(title);
+    setQuoteModalOpen(true);
+  };
 
   return (
     <div className="py-12 md:py-20">
@@ -129,13 +138,14 @@ const Services = () => {
                       </p>
                     </div>
 
-                    <Link
-                      to="/contact"
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEstimate(service.title)}
                       className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-md shadow-primary/20 transition-all cursor-pointer"
                     >
-                      <span>Inquire</span>
+                      <span>Get Estimate</span>
                       <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    </button>
                   </div>
                 </div>
               );
@@ -150,16 +160,23 @@ const Services = () => {
             Have a project with specialized requirements or a unique workflow? I can construct a customized full-stack system designed specifically around your specifications.
           </p>
           <div className="pt-2">
-            <Link
-              to="/contact"
+            <button
+              onClick={() => handleOpenEstimate('Other Custom System')}
               className="px-6 py-3 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md shadow-primary/20 inline-flex items-center gap-2 cursor-pointer"
             >
-              <span>Discuss Your Specific Needs</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+              <Sparkles className="w-4 h-4" />
+              <span>Request Detailed Architecture Estimate</span>
+            </button>
           </div>
         </section>
       </div>
+
+      {/* Estimation Modal */}
+      <QuoteModal
+        isOpen={quoteModalOpen}
+        onClose={() => setQuoteModalOpen(false)}
+        initialProjectType={selectedServiceTitle}
+      />
     </div>
   );
 };

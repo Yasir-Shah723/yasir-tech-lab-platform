@@ -7,6 +7,7 @@ import Blog from '../models/Blog.js';
 import Message from '../models/Message.js';
 import Testimonial from '../models/Testimonial.js';
 import AppError from '../utils/AppError.js';
+import QuoteRequest from '../models/QuoteRequest.js';
 
 const signToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -93,6 +94,7 @@ export const updatePassword = async (req, res, next) => {
 };
 
 // Admin Dashboard Dynamic Statistics
+// Admin Dashboard Dynamic Statistics
 export const getAdminStats = async (req, res, next) => {
   try {
     const [
@@ -103,6 +105,8 @@ export const getAdminStats = async (req, res, next) => {
       unreadMessages,
       totalMessages,
       totalTestimonials,
+      pendingQuotes,
+      totalQuotes,
       recentMessages,
     ] = await Promise.all([
       Project.countDocuments(),
@@ -112,6 +116,8 @@ export const getAdminStats = async (req, res, next) => {
       Message.countDocuments({ status: 'unread' }),
       Message.countDocuments(),
       Testimonial.countDocuments(),
+      QuoteRequest.countDocuments({ status: 'pending' }),
+      QuoteRequest.countDocuments(),
       Message.find().sort({ createdAt: -1 }).limit(5),
     ]);
 
@@ -125,6 +131,8 @@ export const getAdminStats = async (req, res, next) => {
         unreadMessages,
         totalMessages,
         totalTestimonials,
+        pendingQuotes,
+        totalQuotes,
         recentMessages,
       },
     });
