@@ -28,6 +28,7 @@ import AdminBlogs from './pages/admin/AdminBlogs';
 import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminMessages from './pages/admin/AdminMessages';
 import AdminQuotes from './pages/admin/AdminQuotes';
+import AdminSettings from './pages/admin/AdminSettings';
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
           <Route path="testimonials" element={<AdminTestimonials />} />
           <Route path="messages" element={<AdminMessages />} />
           <Route path="quotes" element={<AdminQuotes />} />
+          <Route path="settings" element={<AdminSettings />} />
           
         </Route>
 

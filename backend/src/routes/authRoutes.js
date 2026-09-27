@@ -1,25 +1,20 @@
 import express from 'express';
-import rateLimit from 'express-rate-limit';
-import { login, getMe, updatePassword, getAdminStats } from '../controllers/authController.js';
+import {
+  login,
+  getMe,
+  updatePassword,
+  getAdminStats,
+} from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Rate limiter for authentication: 5 failed attempts per 15 minutes
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    status: 'fail',
-    message: 'Too many login attempts from this IP. Please try again after 15 minutes.',
-  },
-});
+// Public auth route
+router.post('/login', login);
 
-router.post('/login', loginLimiter, login);
+// Protected auth routes
 router.get('/me', protect, getMe);
+router.patch('/update-password', protect, updatePassword);
 router.get('/admin/stats', protect, getAdminStats);
 
 export default router;

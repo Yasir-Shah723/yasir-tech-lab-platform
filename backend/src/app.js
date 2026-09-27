@@ -13,6 +13,7 @@ import blogRoutes from './routes/blogRoutes.js';
 import testimonialRoutes from './routes/testimonialRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import quoteRoutes from './routes/quoteRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
 
 const app = express();
 
@@ -57,6 +58,7 @@ app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/testimonials', testimonialRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/quotes', quoteRoutes);
+app.use('/api/v1/settings', settingsRoutes);
 
 // Catch unhandled routes
 app.use(notFoundHandler);

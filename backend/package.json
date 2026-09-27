@@ -12,7 +12,9 @@
     "seed:services": "node scripts/seedServices.js",
     "seed:profile": "node scripts/seedProfileData.js",
     "seed:certificates": "node scripts/seedCertificates.js",
-    "seed:blogs": "node scripts/seedBlogs.js"
+    "seed:blogs": "node scripts/seedBlogs.js",
+    "seed:settings": "node scripts/seedSettings.js"
+    
   },
   "keywords": [],
   "author": "",

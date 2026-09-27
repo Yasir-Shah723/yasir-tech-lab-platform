@@ -1,154 +1,117 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const AdminLogin = () => {
-  const { login, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // If already authenticated, redirect straight to dashboard
-  if (isAuthenticated) {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
-
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-    if (error) setError('');
-  };
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (!formData.email.trim() || !formData.password) {
-      setError('Please provide both your administrator email and password.');
-      return;
-    }
-
-    setSubmitting(true);
     try {
-      await login(formData.email.trim(), formData.password);
-      const destination = location.state?.from?.pathname || '/admin/dashboard';
-      navigate(destination, { replace: true });
+      await login(email, password);
+      navigate('/admin/dashboard', { replace: true });
     } catch (err) {
-      const serverMessage =
-        err.response?.data?.message || 'Authentication failed. Please verify your credentials.';
-      setError(serverMessage);
+      setError(
+        err.response?.data?.message || 'Invalid credentials or connection error'
+      );
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-light-bg dark:bg-dark-bg transition-colors duration-300">
-      <div className="w-full max-w-md">
-        {/* Brand Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary text-white font-bold text-xl shadow-lg shadow-primary/30 mb-3">
-            YTL
+    <div className="min-h-screen flex items-center justify-center p-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text">
+      <div className="w-full max-w-md p-8 rounded-3xl border border-light-border dark:border-dark-border bg-white dark:bg-dark-surface shadow-xl space-y-6">
+        
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-sm">
+            <Lock className="w-6 h-6" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-light-text dark:text-dark-text">
-            Control Console
-          </h1>
-          <p className="text-sm text-light-muted dark:text-dark-muted mt-1">
-            Yasir Tech Lab Administrative Management
+          <h1 className="text-2xl font-bold tracking-tight">Admin Console</h1>
+          <p className="text-xs text-light-muted dark:text-dark-muted">
+            Yasir Tech Lab • Secure Administration Portal
           </p>
         </div>
 
-        {/* Login Box */}
-        <div className="p-8 rounded-2xl border border-light-border dark:border-dark-border bg-white dark:bg-dark-card shadow-xl backdrop-blur-md">
-          {error && (
-            <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 flex items-start gap-3 text-sm">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
+        {/* Error Alert */}
+        {error && (
+          <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs sm:text-sm flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-xs font-semibold uppercase tracking-wider text-light-muted dark:text-dark-muted mb-2"
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-light-muted dark:text-dark-muted mb-1.5">
+              Admin Email
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-light-muted dark:text-dark-muted" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@yasirtechlab.com"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-light-muted dark:text-dark-muted mb-1.5">
+              Master Password
+            </label>
+            <div className="relative">
+              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-light-muted dark:text-dark-muted" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••"
+                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text cursor-pointer transition-colors"
+                title={showPassword ? 'Hide password' : 'Show password'}
               >
-                Administrator Email
-              </label>
-              <div className="relative">
-                <Mail className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-light-muted dark:text-dark-muted" />
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="mrsyed640@gmail.com"
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/60 text-light-text dark:text-dark-text text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
-              </div>
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
+          </div>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-xs font-semibold uppercase tracking-wider text-light-muted dark:text-dark-muted mb-2"
-              >
-                Security Key / Password
-              </label>
-              <div className="relative">
-                <Lock className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-light-muted dark:text-dark-muted" />
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••••••"
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/60 text-light-text dark:text-dark-text text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-3.5 px-4 rounded-xl bg-primary hover:bg-primary-hover text-white font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Authenticating...</span>
-                </>
-              ) : (
-                <>
-                  <span>Access Management Portal</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Back Link */}
-        <div className="text-center mt-6">
-          <a
-            href="/"
-            className="text-xs text-light-muted dark:text-dark-muted hover:text-primary transition-colors"
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md shadow-primary/25 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
           >
-            ← Return to public website
-          </a>
-        </div>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Authenticating...</span>
+              </>
+            ) : (
+              <span>Sign In to Console</span>
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );
