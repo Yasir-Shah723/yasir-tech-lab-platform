@@ -2,7 +2,7 @@ import Message from '../models/Message.js';
 import { sendEmail } from '../utils/sendEmail.js';
 
 // POST /api/v1/contact - Public: submit contact message
-export const createContactMessage = async (req, res) => {
+export const submitMessage = async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
 
@@ -74,6 +74,10 @@ export const createContactMessage = async (req, res) => {
   }
 };
 
+// Aliases for submitMessage
+export const createContactMessage = submitMessage;
+export const sendMessage = submitMessage;
+
 // GET /api/v1/contact - Admin: get all messages
 export const getAdminMessages = async (req, res) => {
   try {
@@ -84,7 +88,7 @@ export const getAdminMessages = async (req, res) => {
   }
 };
 
-// Aliases for compatibility across router variations
+// Aliases for getAdminMessages
 export const getContactMessages = getAdminMessages;
 export const getMessages = getAdminMessages;
 
