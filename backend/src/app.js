@@ -57,18 +57,13 @@ app.get('/api/health', (req, res) => {
 // ---------------------------------------------------------------------
 // 2. Production Static Frontend Serving (RIGHT HERE)
 // ---------------------------------------------------------------------
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../../frontend/dist');
-  app.use(express.static(distPath));
-
-  // Any non-API route gets served the React frontend
-  app.get('*', (req, res, next) => {
-    if (req.originalUrl.startsWith('/api')) {
-      return next();
-    }
-    res.sendFile(path.resolve(distPath, 'index.html'));
+// Root entry route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Yasir Tech Lab REST API is live and operational.',
   });
-}
+});
 
 // ---------------------------------------------------------------------
 // 3. Global Error Handling Middleware (Always at the very bottom)
