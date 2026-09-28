@@ -75,7 +75,7 @@ export const createContactMessage = async (req, res) => {
 };
 
 // GET /api/v1/contact - Admin: get all messages
-export const getContactMessages = async (req, res) => {
+export const getAdminMessages = async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: messages.length, data: messages });
@@ -84,8 +84,9 @@ export const getContactMessages = async (req, res) => {
   }
 };
 
-// Alias in case contactRoutes imports 'getMessages'
-export const getMessages = getContactMessages;
+// Aliases for compatibility across router variations
+export const getContactMessages = getAdminMessages;
+export const getMessages = getAdminMessages;
 
 // GET /api/v1/contact/:id - Admin: get single message
 export const getMessageById = async (req, res) => {
@@ -100,7 +101,7 @@ export const getMessageById = async (req, res) => {
   }
 };
 
-// PATCH /api/v1/contact/:id/status - Admin: mark read/unread/replied
+// PATCH /api/v1/contact/:id/status - Admin: update message status
 export const updateMessageStatus = async (req, res) => {
   try {
     const { status } = req.body;
