@@ -19,7 +19,7 @@ export default function AdminLogin() {
 
   // Automatically points to localhost when developing, and Render when live
   const API_BASE = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com';
-  const targetUrl = `${API_BASE}/api/v1/auth/login`;
+  const targetUrl = `${API_BASE}/auth/login`;
 
   try {
     const response = await fetch(targetUrl, {
@@ -79,7 +79,7 @@ export default function AdminLogin() {
   const API_BASE = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com';
 
   try {
-    const response = await fetch(`${API_BASE}/api/v1/auth/forgot-password`, {
+    fetch(`${API_BASE}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
