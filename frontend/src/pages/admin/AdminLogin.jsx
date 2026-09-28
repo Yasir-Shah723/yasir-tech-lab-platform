@@ -1,87 +1,89 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 export default function AdminLogin() {
-  const navigate = useNavigate();
-
-  // Login form state
   const [email, setEmail] = useState('mrsyed640@gmail.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loginError, setLoginError] = useState('');
-
-  // Forgot password view state
+  const [errorMessage, setErrorMessage] = useState('');
   const [isForgotView, setIsForgotView] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotEmail, setForgotEmail] = useState('mrsyed640@gmail.com');
   const [forgotStatus, setForgotStatus] = useState({ loading: false, msg: '', error: false });
 
-  const handleLoginSubmit = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    console.log('[DEBUG] AdminLogin triggered! Requesting auth...');
+  // 1. Direct, foolproof login handler
+  const handleLogin = async (e) => {
+    if (e) e.preventDefault();
     setLoading(true);
-    setLoginError('');
+    setErrorMessage('');
+
+    const targetUrl = 'https://yasir-tech-lab-api.onrender.com/api/v1/auth/login';
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com/api/v1';
-      console.log('[DEBUG] Target URL:', `${apiUrl}/auth/login`);
-
-      const res = await axios.post(`${apiUrl}/auth/login`, {
-        email: email.trim().toLowerCase(),
-        password,
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password: password,
+        }),
       });
 
-      console.log('[DEBUG] Server response:', res.data);
+      const data = await response.json();
 
-      const token = res.data?.token;
-      if (token) {
-        // Save under both keys to ensure any ProtectedRoute finds it
-        localStorage.setItem('adminToken', token);
-        localStorage.setItem('token', token);
-        if (res.data.user) {
-          localStorage.setItem('adminUser', JSON.stringify(res.data.user));
-          localStorage.setItem('user', JSON.stringify(res.data.user));
+      if (!response.ok) {
+        throw new Error(data.message || `Server responded with status ${response.status}`);
+      }
+
+      if (data.token) {
+        // Save under every common token name your app might check
+        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('jwt', data.token);
+        if (data.user) {
+          localStorage.setItem('adminUser', JSON.stringify(data.user));
+          localStorage.setItem('user', JSON.stringify(data.user));
         }
 
-        console.log('[DEBUG] Stored auth tokens. Navigating to dashboard...');
-        window.location.href = '/admin/dashboard';
+        // Hard navigation straight to admin panel
+        window.location.replace('/admin/dashboard');
       } else {
-        setLoginError('No token returned from server.');
+        throw new Error('No authentication token received from backend.');
       }
     } catch (err) {
-      console.error('[DEBUG] AdminLogin error:', err);
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        'Server connection failed. Please check network.';
-      setLoginError(message);
+      setErrorMessage(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotSubmit = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
+  // 2. Direct forgot password handler
+  const handleForgot = async (e) => {
+    if (e) e.preventDefault();
     setForgotStatus({ loading: true, msg: '', error: false });
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com/api/v1';
-      const res = await axios.post(`${apiUrl}/auth/forgot-password`, {
-        email: forgotEmail.trim().toLowerCase(),
+      const response = await fetch('https://yasir-tech-lab-api.onrender.com/api/v1/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
       });
-      setForgotStatus({ loading: false, msg: res.data.message, error: false });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to dispatch reset email.');
+      }
+
+      setForgotStatus({ loading: false, msg: data.message, error: false });
     } catch (err) {
-      setForgotStatus({
-        loading: false,
-        msg: err.response?.data?.message || 'Failed to send recovery link.',
-        error: true,
-      });
+      setForgotStatus({ loading: false, msg: err.message, error: true });
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl relative z-10">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
         {!isForgotView ? (
           <div>
             <div className="text-center mb-6">
@@ -89,13 +91,13 @@ export default function AdminLogin() {
               <p className="text-sm text-slate-400 mt-1">Yasir Tech Lab Console</p>
             </div>
 
-            {loginError && (
-              <div className="p-3 mb-4 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-medium">
-                {loginError}
+            {errorMessage && (
+              <div className="p-3 mb-4 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 text-sm font-medium">
+                {errorMessage}
               </div>
             )}
 
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
                 <input
@@ -120,11 +122,10 @@ export default function AdminLogin() {
 
               <button
                 type="submit"
-                onClick={handleLoginSubmit}
                 disabled={loading}
                 className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50 cursor-pointer"
               >
-                {loading ? 'Authenticating...' : 'Sign In'}
+                {loading ? 'Verifying & Signing In...' : 'Sign In'}
               </button>
             </form>
 
@@ -133,8 +134,7 @@ export default function AdminLogin() {
                 type="button"
                 onClick={() => {
                   setIsForgotView(true);
-                  setForgotEmail(email || 'mrsyed640@gmail.com');
-                  setForgotStatus({ loading: false, msg: '', error: false });
+                  setErrorMessage('');
                 }}
                 className="text-sm text-cyan-400 hover:text-cyan-300 transition cursor-pointer"
               >
@@ -155,15 +155,15 @@ export default function AdminLogin() {
               <div
                 className={`p-3 rounded-lg mb-4 text-sm ${
                   forgotStatus.error
-                    ? 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
-                    : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                    ? 'bg-rose-500/15 border border-rose-500/30 text-rose-400'
+                    : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
                 }`}
               >
                 {forgotStatus.msg}
               </div>
             )}
 
-            <form onSubmit={handleForgotSubmit} className="space-y-4">
+            <form onSubmit={handleForgot} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Admin Email</label>
                 <input
@@ -172,13 +172,11 @@ export default function AdminLogin() {
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
                   className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
-                  placeholder="mrsyed640@gmail.com"
                 />
               </div>
 
               <button
                 type="submit"
-                onClick={handleForgotSubmit}
                 disabled={forgotStatus.loading}
                 className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50 cursor-pointer"
               >
