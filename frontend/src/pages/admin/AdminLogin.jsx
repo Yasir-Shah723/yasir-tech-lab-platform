@@ -1,85 +1,102 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('mrsyed640@gmail.com');
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isForgotView, setIsForgotView] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('mrsyed640@gmail.com');
+  const [forgotEmail, setForgotEmail] = useState('');
   const [forgotStatus, setForgotStatus] = useState({ loading: false, msg: '', error: false });
 
-  // 1. Direct, foolproof login handler
+  // 1. Foolproof login handler
   const handleLogin = async (e) => {
-    if (e) e.preventDefault();
-    setLoading(true);
-    setErrorMessage('');
+  if (e) e.preventDefault();
+  setLoading(true);
+  setErrorMessage('');
 
-    const targetUrl = 'https://yasir-tech-lab-api.onrender.com/api/v1/auth/login';
+  // Automatically points to localhost when developing, and Render when live
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com';
+  const targetUrl = `${API_BASE}/api/v1/auth/login`;
 
-    try {
-      const response = await fetch(targetUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password: password,
-        }),
-      });
+  try {
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        password: password,
+      }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || `Server responded with status ${response.status}`);
-      }
-
-      if (data.token) {
-        // Save under every common token name your app might check
-        localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('jwt', data.token);
-        if (data.user) {
-          localStorage.setItem('adminUser', JSON.stringify(data.user));
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
-
-        // Hard navigation straight to admin panel
-        window.location.replace('/admin/dashboard');
-      } else {
-        throw new Error('No authentication token received from backend.');
-      }
-    } catch (err) {
-      setErrorMessage(err.message || 'Login failed. Please check your credentials.');
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error(data.message || `Server responded with status ${response.status}`);
     }
-  };
+
+    // Read token whether it is directly on data.token or nested inside data.data.token
+    const token = data.token || (data.data && data.data.token);
+
+    if (token) {
+      // Save under standard keys
+      localStorage.setItem('adminToken', token);
+      localStorage.setItem('token', token);
+      localStorage.setItem('jwt', token);
+
+      const userData = data.user || (data.data && data.data.user);
+      if (userData) {
+        localStorage.setItem('adminUser', JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+
+      // Clear sensitive inputs
+      setEmail('');
+      setPassword('');
+
+      // Navigate cleanly to the admin dashboard
+      navigate('/admin/dashboard', { replace: true });
+    } else {
+      throw new Error('No authentication token received from backend.');
+    }
+  } catch (err) {
+    setErrorMessage(err.message || 'Login failed. Please check your credentials.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   // 2. Direct forgot password handler
   const handleForgot = async (e) => {
-    if (e) e.preventDefault();
-    setForgotStatus({ loading: true, msg: '', error: false });
+  if (e) e.preventDefault();
+  setForgotStatus({ loading: true, msg: '', error: false });
 
-    try {
-      const response = await fetch('https://yasir-tech-lab-api.onrender.com/api/v1/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
-      });
+  // Dynamically uses localhost during local development and Render when deployed
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com';
 
-      const data = await response.json();
+  try {
+    const response = await fetch(`${API_BASE}/api/v1/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
+    });
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to dispatch reset email.');
-      }
+    const data = await response.json();
 
-      setForgotStatus({ loading: false, msg: data.message, error: false });
-    } catch (err) {
-      setForgotStatus({ loading: false, msg: err.message, error: true });
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to dispatch reset email.');
     }
-  };
+
+    setForgotStatus({ loading: false, msg: data.message || 'Reset link sent successfully.', error: false });
+    setForgotEmail('');
+  } catch (err) {
+    setForgotStatus({ loading: false, msg: err.message || 'Error sending link.', error: true });
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
@@ -97,15 +114,17 @@ export default function AdminLogin() {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleLogin} className="space-y-4" autoComplete="off">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
                 <input
                   type="email"
                   required
+                  autoComplete="off"
+                  placeholder="Enter admin email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -114,9 +133,11 @@ export default function AdminLogin() {
                 <input
                   type="password"
                   required
+                  autoComplete="new-password"
+                  placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -135,6 +156,7 @@ export default function AdminLogin() {
                 onClick={() => {
                   setIsForgotView(true);
                   setErrorMessage('');
+                  setForgotEmail('');
                 }}
                 className="text-sm text-cyan-400 hover:text-cyan-300 transition cursor-pointer"
               >
@@ -163,15 +185,17 @@ export default function AdminLogin() {
               </div>
             )}
 
-            <form onSubmit={handleForgot} className="space-y-4">
+            <form onSubmit={handleForgot} className="space-y-4" autoComplete="off">
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">Admin Email</label>
                 <input
                   type="email"
                   required
+                  autoComplete="off"
+                  placeholder="Enter admin email"
                   value={forgotEmail}
                   onChange={(e) => setForgotEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -185,7 +209,10 @@ export default function AdminLogin() {
 
               <button
                 type="button"
-                onClick={() => setIsForgotView(false)}
+                onClick={() => {
+                  setIsForgotView(false);
+                  setErrorMessage('');
+                }}
                 className="w-full text-center text-sm text-slate-400 hover:text-white transition mt-2 cursor-pointer"
               >
                 &larr; Back to Login

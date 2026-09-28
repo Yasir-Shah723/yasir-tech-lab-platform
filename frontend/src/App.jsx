@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
@@ -47,7 +47,6 @@ function App() {
           <Route path="/blog/:slug" element={<BlogDetail />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin/reset-password/:token" element={<ResetPassword />} />
-          
         </Route>
 
         {/* Admin Authentication */}
@@ -62,6 +61,9 @@ function App() {
             </ProtectedRoute>
           }
         >
+          {/* Index Route: Redirects /admin straight to /admin/dashboard */}
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="projects" element={<AdminProjects />} />
           <Route path="services" element={<AdminServices />} />
@@ -72,7 +74,6 @@ function App() {
           <Route path="messages" element={<AdminMessages />} />
           <Route path="quotes" element={<AdminQuotes />} />
           <Route path="settings" element={<AdminSettings />} />
-          
         </Route>
 
         {/* Fallback to Home */}
