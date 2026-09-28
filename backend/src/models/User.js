@@ -1,57 +1,57 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 const userSchema = new mongoose.Schema(
   {
+    name: {
+      type: String,
+      required: [true, 'Please provide a name'],
+      trim: true,
+    },
     username: {
       type: String,
-      required: [true, 'Username is required'],
-      unique: true,
       trim: true,
-      lowercase: true,
-      minlength: [3, 'Username must be at least 3 characters long'],
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, 'Please provide an email'],
       unique: true,
-      trim: true,
       lowercase: true,
-      match: [
-        /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-        'Please provide a valid email address',
-      ],
+      trim: true,
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
-      minlength: [8, 'Password must be at least 8 characters long'],
-      select: false, // Prevents password from being returned in general queries
+      required: [true, 'Please provide a password'],
+      minlength: 6,
+      select: false,
     },
     role: {
       type: String,
-      enum: ['admin'],
+      enum: ['user', 'admin'],
       default: 'admin',
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   {
     timestamps: true,
   }
 );
 
-// Pre-save hook: Hash password before persisting if modified
-userSchema.pre('save', async function () {
-  if (!this.isModified('password')) return;
+// Method to generate secure reset token
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
 
-  const salt = await bcrypt.genSalt(12);
-  this.password = await bcrypt.hash(this.password, salt);
-});
+  // Store hashed token in database to prevent leakage
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
 
-// Instance method: Compare candidate password with stored hash
-userSchema.methods.comparePassword = async function (candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+  // Valid for 15 minutes
+  this.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+
+  return resetToken;
 };
 
-const User = mongoose.model('User', userSchema);
-
-export default User;
+export default mongoose.models.User || mongoose.model('User', userSchema);

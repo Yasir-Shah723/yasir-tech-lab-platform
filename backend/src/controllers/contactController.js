@@ -1,124 +1,86 @@
-import Message from '../models/Message.js';
-import AppError from '../utils/AppError.js';
+import ContactMessage from '../models/ContactMessage.js';
+import { sendEmail } from '../utils/sendEmail.js';
 
-// Public: Submit message with honeypot spam verification
-export const submitMessage = async (req, res, next) => {
+// POST /api/v1/contact
+export const createContactMessage = async (req, res) => {
   try {
-    const { name, email, phone, subject, message, _gotcha } = req.body;
+    const { name, email, subject, message } = req.body;
 
-    // Honeypot check: Bots fill hidden input fields that real users cannot see
-    if (_gotcha) {
-      // Quietly return success without saving anything to the database
-      return res.status(200).json({
-        success: true,
-        message: 'Your message has been received successfully.',
+    if (!name || !email || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide name, email, and message.',
       });
     }
 
-    if (!name || !email || !subject || !message) {
-      return next(new AppError('Please fill in all required fields.', 400));
-    }
-
-    const newMessage = await Message.create({
+    // 1. Save to MongoDB
+    const newMessage = await ContactMessage.create({
       name,
       email,
-      phone: phone || '',
-      subject,
+      subject: subject || 'New Inquiry from Yasir Tech Lab',
       message,
-      ipAddress: req.ip || req.headers['x-forwarded-for'] || '',
-      status: 'unread',
     });
+
+    // 2. Dispatch real-time alert email to mrsyed640@gmail.com
+    const alertHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+        <h2 style="color: #0f172a; margin-top: 0; border-bottom: 2px solid #3b82f6; padding-bottom: 8px;">
+          New Client Contact Message
+        </h2>
+        <p style="color: #475569; font-size: 15px;">You received a new inquiry on Yasir Tech Lab:</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+          <tr>
+            <td style="padding: 8px; font-weight: bold; color: #334155; width: 100px;">Sender:</td>
+            <td style="padding: 8px; color: #0f172a;">${name}</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; font-weight: bold; color: #334155;">Email:</td>
+            <td style="padding: 8px; color: #2563eb;"><a href="mailto:${email}">${email}</a></td>
+          </tr>
+          <tr>
+            <td style="padding: 8px; font-weight: bold; color: #334155;">Subject:</td>
+            <td style="padding: 8px; color: #0f172a;">${subject || 'General Inquiry'}</td>
+          </tr>
+        </table>
+        <div style="background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 16px; margin: 16px 0; border-radius: 4px;">
+          <p style="margin: 0; color: #1e293b; white-space: pre-wrap; font-size: 14px; line-height: 1.6;">${message}</p>
+        </div>
+        <div style="text-align: center; margin-top: 24px;">
+          <a href="mailto:${email}?subject=Re: ${encodeURIComponent(subject || 'Inquiry')}" style="background-color: #2563eb; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            Reply Directly to ${name}
+          </a>
+        </div>
+      </div>
+    `;
+
+    try {
+      await sendEmail({
+        to: 'mrsyed640@gmail.com',
+        subject: `[Yasir Tech Lab] New Inquiry from ${name}`,
+        html: alertHtml,
+      });
+    } catch (mailError) {
+      console.error('Contact alert email failed to send:', mailError.message);
+      // We still return 201 so client knows their message was saved in DB
+    }
 
     res.status(201).json({
       success: true,
-      message: 'Thank you! Your message has been sent. I will respond to your email shortly.',
-      data: {
-        id: newMessage._id,
-        createdAt: newMessage.createdAt,
-      },
+      message: 'Your message has been sent successfully. Yasir will get back to you shortly!',
+      data: newMessage,
     });
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    console.error('Contact form error:', error);
+    res.status(500).json({ success: false, message: 'Server error while sending message.' });
   }
 };
 
-// Admin: Get all messages with filtering
-export const getAdminMessages = async (req, res, next) => {
+// GET /api/v1/contact (Admin protected)
+export const getContactMessages = async (req, res) => {
   try {
-    const { status, search } = req.query;
-    const query = {};
-
-    if (status && status !== 'all') {
-      query.status = status;
-    }
-
-    if (search) {
-      query.$or = [
-        { name: { $regex: search,$options: 'i' } },
-        { email: { $regex: search,$options: 'i' } },
-        { subject: { $regex: search,$options: 'i' } },
-        { message: { $regex: search,$options: 'i' } },
-      ];
-    }
-
-    const messages = await Message.find(query).sort({ createdAt: -1 });
-    const unreadCount = await Message.countDocuments({ status: 'unread' });
-
-    res.status(200).json({
-      success: true,
-      count: messages.length,
-      unreadCount,
-      data: messages,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Admin: Update status (unread, read, replied, archived)
-export const updateMessageStatus = async (req, res, next) => {
-  try {
-    const { status } = req.body;
-    const allowedStatuses = ['unread', 'read', 'replied', 'archived'];
-
-    if (!allowedStatuses.includes(status)) {
-      return next(new AppError('Invalid status value', 400));
-    }
-
-    const updated = await Message.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-
-    if (!updated) {
-      return next(new AppError(`Message not found with id: ${req.params.id}`, 404));
-    }
-
-    res.status(200).json({
-      success: true,
-      message: `Message marked as ${status}`,
-      data: updated,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Admin: Delete message
-export const deleteMessage = async (req, res, next) => {
-  try {
-    const deleted = await Message.findByIdAndDelete(req.params.id);
-
-    if (!deleted) {
-      return next(new AppError(`Message not found with id: ${req.params.id}`, 404));
-    }
-
-    res.status(200).json({
-      success: true,
-      message: 'Message permanently deleted',
-    });
-  } catch (err) {
-    next(err);
+    const messages = await ContactMessage.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, count: messages.length, data: messages });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error.' });
   }
 };

@@ -29,6 +29,7 @@ import AdminTestimonials from './pages/admin/AdminTestimonials';
 import AdminMessages from './pages/admin/AdminMessages';
 import AdminQuotes from './pages/admin/AdminQuotes';
 import AdminSettings from './pages/admin/AdminSettings';
+import ResetPassword from './pages/admin/ResetPassword';
 
 function App() {
   return (
@@ -45,6 +46,8 @@ function App() {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogDetail />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/admin/reset-password/:token" element={<ResetPassword />} />
+          
         </Route>
 
         {/* Admin Authentication */}

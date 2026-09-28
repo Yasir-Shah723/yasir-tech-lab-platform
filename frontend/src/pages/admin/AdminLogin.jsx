@@ -1,120 +1,179 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import axios from 'axios';
 
-const AdminLogin = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const { login } = useAuth();
+export default function AdminLogin() {
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  // Standard Login State
+  const [email, setEmail] = useState('mrsyed640@gmail.com');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState('');
+
+  // Forgot Password State
+  const [isForgotView, setIsForgotView] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotStatus, setForgotStatus] = useState({ loading: false, msg: '', error: false });
+
+  // Handle Login Submit
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setLoginError('');
 
     try {
-      await login(email, password);
-      navigate('/admin/dashboard', { replace: true });
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, {
+        email,
+        password,
+      });
+
+      if (res.data.token) {
+        localStorage.setItem('adminToken', res.data.token);
+        localStorage.setItem('adminUser', JSON.stringify(res.data.user));
+        navigate('/admin/dashboard');
+      }
     } catch (err) {
-      setError(
-        err.response?.data?.message || 'Invalid credentials or connection error'
-      );
+      setLoginError(err.response?.data?.message || 'Invalid email or password.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle Forgot Password Submit
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    setForgotStatus({ loading: true, msg: '', error: false });
+
+    try {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, {
+        email: forgotEmail,
+      });
+      setForgotStatus({ loading: false, msg: res.data.message, error: false });
+    } catch (err) {
+      setForgotStatus({
+        loading: false,
+        msg: err.response?.data?.message || 'Failed to send reset link.',
+        error: true,
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text">
-      <div className="w-full max-w-md p-8 rounded-3xl border border-light-border dark:border-dark-border bg-white dark:bg-dark-surface shadow-xl space-y-6">
-        
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto shadow-sm">
-            <Lock className="w-6 h-6" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">Admin Console</h1>
-          <p className="text-xs text-light-muted dark:text-dark-muted">
-            Yasir Tech Lab • Secure Administration Portal
-          </p>
-        </div>
-
-        {/* Error Alert */}
-        {error && (
-          <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs sm:text-sm flex items-center gap-2.5">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+        {!isForgotView ? (
           <div>
-            <label className="block text-xs font-semibold text-light-muted dark:text-dark-muted mb-1.5">
-              Admin Email
-            </label>
-            <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-light-muted dark:text-dark-muted" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@yasirtechlab.com"
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white tracking-tight">Admin Sign In</h2>
+              <p className="text-sm text-slate-400 mt-1">Yasir Tech Lab Console</p>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-light-muted dark:text-dark-muted mb-1.5">
-              Master Password
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-light-muted dark:text-dark-muted" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-light-border dark:border-dark-border bg-light-bg/50 dark:bg-dark-bg/60 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+            {loginError && (
+              <div className="p-3 mb-4 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
+                {loginError}
+              </div>
+            )}
+
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50"
+              >
+                {loading ? 'Authenticating...' : 'Sign In'}
+              </button>
+            </form>
+
+            <div className="mt-5 text-center">
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-light-muted dark:text-dark-muted hover:text-light-text dark:hover:text-dark-text cursor-pointer transition-colors"
-                title={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => {
+                  setIsForgotView(true);
+                  setForgotEmail(email || 'mrsyed640@gmail.com');
+                  setForgotStatus({ loading: false, msg: '', error: false });
+                }}
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                Forgot your password?
               </button>
             </div>
           </div>
+        ) : (
+          <div>
+            <div className="text-center mb-6">
+              <h2 className="text-xl font-bold text-white">Reset Password</h2>
+              <p className="text-sm text-slate-400 mt-1">
+                Enter your admin email to receive a 15-minute recovery link.
+              </p>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md shadow-primary/25 disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Authenticating...</span>
-              </>
-            ) : (
-              <span>Sign In to Console</span>
+            {forgotStatus.msg && (
+              <div
+                className={`p-3 rounded-lg mb-4 text-sm ${
+                  forgotStatus.error
+                    ? 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+                    : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                }`}
+              >
+                {forgotStatus.msg}
+              </div>
             )}
-          </button>
-        </form>
+
+            <form onSubmit={handleForgotSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Admin Email</label>
+                <input
+                  type="email"
+                  required
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  placeholder="mrsyed640@gmail.com"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={forgotStatus.loading}
+                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50"
+              >
+                {forgotStatus.loading ? 'Sending link...' : 'Send Recovery Link'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsForgotView(false)}
+                className="w-full text-center text-sm text-slate-400 hover:text-white transition mt-2"
+              >
+                &larr; Back to Login
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default AdminLogin;
+}
