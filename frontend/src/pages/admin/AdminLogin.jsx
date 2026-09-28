@@ -5,18 +5,17 @@ import axios from 'axios';
 export default function AdminLogin() {
   const navigate = useNavigate();
 
-  // Standard Login State
+  // Login form state
   const [email, setEmail] = useState('mrsyed640@gmail.com');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
 
-  // Forgot Password State
+  // Forgot password view state
   const [isForgotView, setIsForgotView] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotStatus, setForgotStatus] = useState({ loading: false, msg: '', error: false });
 
-  // Handle Login Submit
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -24,36 +23,59 @@ export default function AdminLogin() {
 
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, {
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
-      if (res.data.token) {
-        localStorage.setItem('adminToken', res.data.token);
-        localStorage.setItem('adminUser', JSON.stringify(res.data.user));
-        navigate('/admin/dashboard');
+      console.log('Login response:', res.data);
+
+      const token = res.data.token;
+      if (token) {
+        // Save under both common keys to prevent any mismatch with ProtectedRoute
+        localStorage.setItem('adminToken', token);
+        localStorage.setItem('token', token);
+        if (res.data.user) {
+          localStorage.setItem('adminUser', JSON.stringify(res.data.user));
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+        }
+
+        // Direct navigation
+        navigate('/admin/dashboard', { replace: true });
+
+        // Fallback hard redirect if React Router does not trigger
+        setTimeout(() => {
+          if (window.location.pathname.includes('/login')) {
+            window.location.href = '/admin/dashboard';
+          }
+        }, 300);
+      } else {
+        setLoginError('Server did not return an authentication token.');
       }
     } catch (err) {
-      setLoginError(err.response?.data?.message || 'Invalid email or password.');
+      console.error('Login error details:', err.response || err);
+      const errMsg =
+        err.response?.data?.message ||
+        err.message ||
+        'Unable to log in. Please check your credentials or backend status.';
+      setLoginError(errMsg);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle Forgot Password Submit
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
     setForgotStatus({ loading: true, msg: '', error: false });
 
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, {
-        email: forgotEmail,
+        email: forgotEmail.trim().toLowerCase(),
       });
       setForgotStatus({ loading: false, msg: res.data.message, error: false });
     } catch (err) {
       setForgotStatus({
         loading: false,
-        msg: err.response?.data?.message || 'Failed to send reset link.',
+        msg: err.response?.data?.message || 'Failed to send recovery link.',
         error: true,
       });
     }
@@ -101,7 +123,7 @@ export default function AdminLogin() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50"
+                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50 cursor-pointer"
               >
                 {loading ? 'Authenticating...' : 'Sign In'}
               </button>
@@ -115,7 +137,7 @@ export default function AdminLogin() {
                   setForgotEmail(email || 'mrsyed640@gmail.com');
                   setForgotStatus({ loading: false, msg: '', error: false });
                 }}
-                className="text-sm text-cyan-400 hover:text-cyan-300 transition"
+                className="text-sm text-cyan-400 hover:text-cyan-300 transition cursor-pointer"
               >
                 Forgot your password?
               </button>
@@ -126,7 +148,7 @@ export default function AdminLogin() {
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-white">Reset Password</h2>
               <p className="text-sm text-slate-400 mt-1">
-                Enter your admin email to receive a 15-minute recovery link.
+                Enter your admin email to receive a recovery link.
               </p>
             </div>
 
@@ -158,7 +180,7 @@ export default function AdminLogin() {
               <button
                 type="submit"
                 disabled={forgotStatus.loading}
-                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50"
+                className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50 cursor-pointer"
               >
                 {forgotStatus.loading ? 'Sending link...' : 'Send Recovery Link'}
               </button>
@@ -166,7 +188,7 @@ export default function AdminLogin() {
               <button
                 type="button"
                 onClick={() => setIsForgotView(false)}
-                className="w-full text-center text-sm text-slate-400 hover:text-white transition mt-2"
+                className="w-full text-center text-sm text-slate-400 hover:text-white transition mt-2 cursor-pointer"
               >
                 &larr; Back to Login
               </button>
