@@ -1,7 +1,7 @@
 import Message from '../models/Message.js';
 import { sendEmail } from '../utils/sendEmail.js';
 
-// POST /api/v1/contact
+// POST /api/v1/contact - Public: submit contact message
 export const createContactMessage = async (req, res) => {
   try {
     const { name, email, subject, message } = req.body;
@@ -13,7 +13,7 @@ export const createContactMessage = async (req, res) => {
       });
     }
 
-    // 1. Save message to MongoDB using your existing Message model
+    // 1. Store message in MongoDB
     const newMessage = await Message.create({
       name,
       email,
@@ -21,7 +21,7 @@ export const createContactMessage = async (req, res) => {
       message,
     });
 
-    // 2. Dispatch real-time alert email to mrsyed640@gmail.com
+    // 2. Dispatch real-time alert email to your inbox
     const alertHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
         <h2 style="color: #0f172a; margin-top: 0; border-bottom: 2px solid #3b82f6; padding-bottom: 8px;">
@@ -55,7 +55,7 @@ export const createContactMessage = async (req, res) => {
 
     try {
       await sendEmail({
-        to: 'mrsyed640@gmail.com',
+        to: process.env.EMAIL_USER || 'mrsyed640@gmail.com',
         subject: `[Yasir Tech Lab] New Inquiry from ${name}`,
         html: alertHtml,
       });
@@ -74,11 +74,58 @@ export const createContactMessage = async (req, res) => {
   }
 };
 
-// GET /api/v1/contact (Admin protected)
+// GET /api/v1/contact - Admin: get all messages
 export const getContactMessages = async (req, res) => {
   try {
     const messages = await Message.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: messages.length, data: messages });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// Alias in case contactRoutes imports 'getMessages'
+export const getMessages = getContactMessages;
+
+// GET /api/v1/contact/:id - Admin: get single message
+export const getMessageById = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.id);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found.' });
+    }
+    res.status(200).json({ success: true, data: message });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// PATCH /api/v1/contact/:id/status - Admin: mark read/unread/replied
+export const updateMessageStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const message = await Message.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found.' });
+    }
+    res.status(200).json({ success: true, data: message });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// DELETE /api/v1/contact/:id - Admin: delete message
+export const deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findByIdAndDelete(req.params.id);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found.' });
+    }
+    res.status(200).json({ success: true, message: 'Message deleted successfully.' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error.' });
   }
