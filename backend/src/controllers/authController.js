@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { sendEmail } from '../utils/sendEmail.js';
@@ -23,16 +22,21 @@ export const login = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: cleanEmail });
+
     if (!user) {
+      console.log(`[AUTH] Login failed: User not found for ${cleanEmail}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password.',
       });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    // Uses the matchPassword helper from userSchema
+    const isMatch = await user.matchPassword(password);
     if (!isMatch) {
+      console.log(`[AUTH] Login failed: Password mismatch for ${cleanEmail}`);
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password.',
@@ -41,7 +45,8 @@ export const login = async (req, res) => {
 
     const token = signToken(user._id);
 
-    res.status(200).json({
+    console.log(`[AUTH] Login SUCCESS for ${cleanEmail}`);
+    return res.status(200).json({
       success: true,
       token,
       user: {
@@ -52,8 +57,11 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Server error during login.' });
+    console.error('[AUTH] Login server crash:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during login.',
+    });
   }
 };
 
@@ -62,13 +70,12 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please enter your email address.',
-      });
+      return res.status(400).json({ success: false, message: 'Please provide an email address.' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: cleanEmail });
+
     if (!user) {
       return res.status(200).json({
         success: true,
@@ -83,16 +90,13 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `${clientUrl}/admin/reset-password/${resetToken}`;
 
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+      <div style="font-family: Arial, sans-serif; max-width: 540px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 10px;">
         <h2 style="color: #0f172a; margin-top: 0;">Password Reset Request</h2>
         <p style="color: #475569; font-size: 15px; line-height: 1.5;">
-          Hello Yasir, you requested a password reset for your <strong>Yasir Tech Lab</strong> administrator account.
-        </p>
-        <p style="color: #475569; font-size: 15px;">
-          Click the button below to set a new password. This link is valid for <strong>15 minutes</strong>:
+          Hello Yasir, click the button below to choose a new password for your admin account. This link is valid for <strong>15 minutes</strong>:
         </p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">
+          <a href="${resetUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
             Reset Admin Password
           </a>
         </div>
@@ -109,7 +113,7 @@ export const forgotPassword = async (req, res) => {
         html,
       });
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: 'Password reset link sent to your email.',
       });
@@ -117,16 +121,15 @@ export const forgotPassword = async (req, res) => {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
       await user.save({ validateBeforeSave: false });
-
-      console.error('Email error:', mailErr);
+      console.error('Mail error:', mailErr);
       return res.status(500).json({
         success: false,
-        message: 'Failed to send reset email. Verify EMAIL_USER and EMAIL_PASS on Render.',
+        message: 'Email service error.',
       });
     }
   } catch (error) {
     console.error('Forgot password error:', error);
-    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
+    return res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
 
@@ -154,22 +157,22 @@ export const resetPassword = async (req, res) => {
     if (!password || password.length < 8) {
       return res.status(400).json({
         success: false,
-        message: 'New password must be at least 8 characters long.',
+        message: 'Password must be at least 8 characters long.',
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
+    // Setting password triggers the pre('save') hook in userSchema to hash it automatically
+    user.password = password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Password successfully updated! You can now log in.',
     });
   } catch (error) {
     console.error('Reset password error:', error);
-    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
+    return res.status(500).json({ success: false, message: 'Server error.' });
   }
 };
