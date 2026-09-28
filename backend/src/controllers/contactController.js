@@ -1,4 +1,4 @@
-import ContactMessage from '../models/ContactMessage.js';
+import Message from '../models/Message.js';
 import { sendEmail } from '../utils/sendEmail.js';
 
 // POST /api/v1/contact
@@ -13,8 +13,8 @@ export const createContactMessage = async (req, res) => {
       });
     }
 
-    // 1. Save to MongoDB
-    const newMessage = await ContactMessage.create({
+    // 1. Save message to MongoDB using your existing Message model
+    const newMessage = await Message.create({
       name,
       email,
       subject: subject || 'New Inquiry from Yasir Tech Lab',
@@ -61,7 +61,6 @@ export const createContactMessage = async (req, res) => {
       });
     } catch (mailError) {
       console.error('Contact alert email failed to send:', mailError.message);
-      // We still return 201 so client knows their message was saved in DB
     }
 
     res.status(201).json({
@@ -78,7 +77,7 @@ export const createContactMessage = async (req, res) => {
 // GET /api/v1/contact (Admin protected)
 export const getContactMessages = async (req, res) => {
   try {
-    const messages = await ContactMessage.find().sort({ createdAt: -1 });
+    const messages = await Message.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: messages.length, data: messages });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error.' });
