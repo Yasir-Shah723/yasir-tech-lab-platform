@@ -17,21 +17,25 @@ export default function AdminLogin() {
   const [forgotStatus, setForgotStatus] = useState({ loading: false, msg: '', error: false });
 
   const handleLoginSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
+    console.log('[DEBUG] AdminLogin triggered! Requesting auth...');
     setLoading(true);
     setLoginError('');
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com/api/v1';
+      console.log('[DEBUG] Target URL:', `${apiUrl}/auth/login`);
+
+      const res = await axios.post(`${apiUrl}/auth/login`, {
         email: email.trim().toLowerCase(),
         password,
       });
 
-      console.log('Login response:', res.data);
+      console.log('[DEBUG] Server response:', res.data);
 
-      const token = res.data.token;
+      const token = res.data?.token;
       if (token) {
-        // Save under both common keys to prevent any mismatch with ProtectedRoute
+        // Save under both keys to ensure any ProtectedRoute finds it
         localStorage.setItem('adminToken', token);
         localStorage.setItem('token', token);
         if (res.data.user) {
@@ -39,36 +43,30 @@ export default function AdminLogin() {
           localStorage.setItem('user', JSON.stringify(res.data.user));
         }
 
-        // Direct navigation
-        navigate('/admin/dashboard', { replace: true });
-
-        // Fallback hard redirect if React Router does not trigger
-        setTimeout(() => {
-          if (window.location.pathname.includes('/login')) {
-            window.location.href = '/admin/dashboard';
-          }
-        }, 300);
+        console.log('[DEBUG] Stored auth tokens. Navigating to dashboard...');
+        window.location.href = '/admin/dashboard';
       } else {
-        setLoginError('Server did not return an authentication token.');
+        setLoginError('No token returned from server.');
       }
     } catch (err) {
-      console.error('Login error details:', err.response || err);
-      const errMsg =
+      console.error('[DEBUG] AdminLogin error:', err);
+      const message =
         err.response?.data?.message ||
         err.message ||
-        'Unable to log in. Please check your credentials or backend status.';
-      setLoginError(errMsg);
+        'Server connection failed. Please check network.';
+      setLoginError(message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleForgotSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setForgotStatus({ loading: true, msg: '', error: false });
 
     try {
-      const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, {
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com/api/v1';
+      const res = await axios.post(`${apiUrl}/auth/forgot-password`, {
         email: forgotEmail.trim().toLowerCase(),
       });
       setForgotStatus({ loading: false, msg: res.data.message, error: false });
@@ -83,7 +81,7 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl relative z-10">
         {!isForgotView ? (
           <div>
             <div className="text-center mb-6">
@@ -92,7 +90,7 @@ export default function AdminLogin() {
             </div>
 
             {loginError && (
-              <div className="p-3 mb-4 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm">
+              <div className="p-3 mb-4 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-medium">
                 {loginError}
               </div>
             )}
@@ -122,6 +120,7 @@ export default function AdminLogin() {
 
               <button
                 type="submit"
+                onClick={handleLoginSubmit}
                 disabled={loading}
                 className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50 cursor-pointer"
               >
@@ -179,6 +178,7 @@ export default function AdminLogin() {
 
               <button
                 type="submit"
+                onClick={handleForgotSubmit}
                 disabled={forgotStatus.loading}
                 className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition disabled:opacity-50 cursor-pointer"
               >
