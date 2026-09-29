@@ -141,7 +141,7 @@ const AdminLayout = () => {
           </button>
 
           <div className="hidden sm:block">
-            <span className="text-xs text-light-muted dark:text-dark-muted">Signed in as: </span>
+            <span className="text-xs text-light-muted dark:text-dark-muted"> </span>
             <span className="text-xs font-semibold text-light-text dark:text-dark-text">{user?.email}</span>
           </div>
 

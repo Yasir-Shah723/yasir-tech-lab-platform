@@ -11,9 +11,16 @@ import {
   ArrowRight,
   Loader2,
   ExternalLink,
+  User,
 } from 'lucide-react';
 
 const AdminDashboard = () => {
+  // Read logged-in admin user info from localStorage
+  const storedUser = JSON.parse(
+    localStorage.getItem('adminUser') || localStorage.getItem('user') || '{}'
+  );
+  const adminName = storedUser.name || storedUser.email || 'Syed Yasir Shah';
+
   const [stats, setStats] = useState({
     totalProjects: 0,
     totalServices: 0,
@@ -115,9 +122,16 @@ const AdminDashboard = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
-      {/* Top Welcome Banner */}
+      {/* Top Welcome Banner with Signed In Admin Info */}
       <div className="p-6 sm:p-8 rounded-3xl border border-light-border dark:border-dark-border bg-white dark:bg-dark-card shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-medium text-light-muted dark:text-dark-muted mb-1">
+            <User className="w-3.5 h-3.5 text-primary" />
+           <span>Signed in as:</span>
+            <span className="font-bold text-light-text dark:text-dark-text text-primary">
+              {adminName}
+            </span>
+          </div>
           <h1 className="text-2xl font-bold tracking-tight">System Overview</h1>
           <p className="text-xs sm:text-sm text-light-muted dark:text-dark-muted">
             Live telemetry, content tallies, and pending communications across Yasir Tech Lab.
