@@ -3,6 +3,15 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { sendEmail } from '../utils/sendEmail.js';
 
+// Models imported to fetch live counts for the dashboard
+import Project from '../models/Project.js';
+import Service from '../models/Service.js';
+import Certificate from '../models/Certificate.js';
+import Blog from '../models/Blog.js';
+import Message from '../models/Message.js';
+import QuoteRequest from '../models/QuoteRequest.js';
+import Testimonial from '../models/Testimonial.js';
+
 const signToken = (id) => {
   const secret = process.env.JWT_SECRET || 'YasirTechLab_Production_Super_Secret_Key_2026!';
   return jwt.sign({ id }, secret, {
@@ -174,5 +183,56 @@ export const resetPassword = async (req, res) => {
   } catch (error) {
     console.error('Reset password error:', error);
     return res.status(500).json({ success: false, message: 'Server error.' });
+  }
+};
+
+// GET /api/v1/auth/admin/stats
+export const getAdminStats = async (req, res) => {
+  try {
+    const [
+      totalProjects,
+      totalServices,
+      totalCertificates,
+      totalBlogs,
+      totalTestimonials,
+      totalQuotes,
+      pendingQuotes,
+      totalMessages,
+      unreadMessages,
+      recentMessages,
+    ] = await Promise.all([
+      Project.countDocuments().catch(() => 0),
+      Service.countDocuments().catch(() => 0),
+      Certificate.countDocuments().catch(() => 0),
+      Blog.countDocuments().catch(() => 0),
+      Testimonial.countDocuments().catch(() => 0),
+      QuoteRequest.countDocuments().catch(() => 0),
+      QuoteRequest.countDocuments({ status: 'pending' }).catch(() => 0),
+      Message.countDocuments().catch(() => 0),
+      Message.countDocuments({ status: 'unread' }).catch(() => 0),
+      Message.find().sort({ createdAt: -1 }).limit(5).catch(() => []),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalProjects,
+        totalServices,
+        totalCertificates,
+        totalBlogs,
+        totalTestimonials,
+        totalQuotes,
+        pendingQuotes,
+        totalMessages,
+        unreadMessages,
+        recentMessages,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to aggregate admin stats:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve system metrics.',
+    });
   }
 };

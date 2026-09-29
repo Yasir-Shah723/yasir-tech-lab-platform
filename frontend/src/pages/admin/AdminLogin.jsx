@@ -13,90 +13,90 @@ export default function AdminLogin() {
 
   // 1. Foolproof login handler
   const handleLogin = async (e) => {
-  if (e) e.preventDefault();
-  setLoading(true);
-  setErrorMessage('');
+    if (e) e.preventDefault();
+    setLoading(true);
+    setErrorMessage('');
 
-  // Automatically points to localhost when developing, and Render when live
-  const API_BASE = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com';
-  const targetUrl = `${API_BASE}/auth/login`;
+    // Automatically points to localhost when developing, and Render when live
+    const API_BASE = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com';
+    const targetUrl = `${API_BASE}/auth/login`;
 
-  try {
-    const response = await fetch(targetUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: email.trim().toLowerCase(),
-        password: password,
-      }),
-    });
+    try {
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password: password,
+        }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || `Server responded with status ${response.status}`);
-    }
-
-    // Read token whether it is directly on data.token or nested inside data.data.token
-    const token = data.token || (data.data && data.data.token);
-
-    if (token) {
-      // Save under standard keys
-      localStorage.setItem('adminToken', token);
-      localStorage.setItem('token', token);
-      localStorage.setItem('jwt', token);
-
-      const userData = data.user || (data.data && data.data.user);
-      if (userData) {
-        localStorage.setItem('adminUser', JSON.stringify(userData));
-        localStorage.setItem('user', JSON.stringify(userData));
+      if (!response.ok) {
+        throw new Error(data.message || `Server responded with status ${response.status}`);
       }
 
-      // Clear sensitive inputs
-      setEmail('');
-      setPassword('');
+      // Read token whether it is directly on data.token or nested inside data.data.token
+      const token = data.token || (data.data && data.data.token);
 
-      // Navigate cleanly to the admin dashboard
-      navigate('/admin/dashboard', { replace: true });
-    } else {
-      throw new Error('No authentication token received from backend.');
+      if (token) {
+        // Save under all possible keys so EVERY page finds it
+        localStorage.setItem('ytl_admin_token', token);
+        localStorage.setItem('token', token);
+        localStorage.setItem('adminToken', token);
+        localStorage.setItem('jwt', token);
+
+        const userData = data.user || (data.data && data.data.user);
+        if (userData) {
+          localStorage.setItem('adminUser', JSON.stringify(userData));
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
+
+        // Clear sensitive inputs
+        setEmail('');
+        setPassword('');
+
+        // Navigate cleanly to the admin dashboard
+        navigate('/admin/dashboard', { replace: true });
+      } else {
+        throw new Error('No authentication token received from backend.');
+      }
+    } catch (err) {
+      setErrorMessage(err.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setErrorMessage(err.message || 'Login failed. Please check your credentials.');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // 2. Direct forgot password handler
   const handleForgot = async (e) => {
-  if (e) e.preventDefault();
-  setForgotStatus({ loading: true, msg: '', error: false });
+    if (e) e.preventDefault();
+    setForgotStatus({ loading: true, msg: '', error: false });
 
-  // Dynamically uses localhost during local development and Render when deployed
-  const API_BASE = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com';
+    const API_BASE = import.meta.env.VITE_API_URL || 'https://yasir-tech-lab-api.onrender.com';
 
-  try {
-    fetch(`${API_BASE}/auth/forgot-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
-    });
+    try {
+      const response = await fetch(`${API_BASE}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim().toLowerCase() }),
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to dispatch reset email.');
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to dispatch reset email.');
+      }
+
+      setForgotStatus({ loading: false, msg: data.message || 'Reset link sent successfully.', error: false });
+      setForgotEmail('');
+    } catch (err) {
+      setForgotStatus({ loading: false, msg: err.message || 'Error sending link.', error: true });
     }
-
-    setForgotStatus({ loading: false, msg: data.message || 'Reset link sent successfully.', error: false });
-    setForgotEmail('');
-  } catch (err) {
-    setForgotStatus({ loading: false, msg: err.message || 'Error sending link.', error: true });
-  }
-};
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
